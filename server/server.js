@@ -20,6 +20,19 @@ app.get("/", (request, response) => {
 
 app.listen(PORT, () => console.log(`app is running on ${PORT}`));
 
-app.get("/", (request, response) => {
-  response.json("This is the root route");
+app.get("/all", async (request, response) => {
+  const result = await db.query(`SELECT 
+    products.name, 
+    categories.product_type, 
+    brand.brand_name,      
+    company.company_name, 
+    STRING_AGG(colors.color, ', ' ORDER BY colors.color) AS colors
+FROM products
+JOIN categories ON products.category_id = categories.id
+JOIN brand ON products.brand_id = brand.id
+JOIN company ON brand.company_id = company.id
+JOIN product_color_junction ON products.id = product_color_junction.product_id
+JOIN colors ON product_color_junction.color_id = colors.id
+GROUP BY products.name, categories.product_type, brand.brand_name, company.company_name`);
+  response.json(result.rows);
 });
